@@ -275,6 +275,85 @@ describe("OpenAIFactExtractor", () => {
     expect(result).toEqual([]);
   });
 
+  it("strips <think> tags from thinking model responses (e.g. Qwen3)", async () => {
+    const json = JSON.stringify([
+      { content: "User's name is Jure", category: "identity", confidence: 1.0, replaces: [] },
+    ]);
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: `<think>\nLet me analyze this conversation...\nThe user told the assistant their name is Jure.\n</think>\n${json}`,
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("My name is Jure", "Nice to meet you, Jure!", []);
+
+    expect(result).toEqual([
+      { content: "User's name is Jure", category: "identity", confidence: 1.0, replaces: [] },
+    ]);
+  });
+
+  it("strips <think> tags with code fences from thinking model responses", async () => {
+    const json = JSON.stringify([
+      { content: "User prefers warm white lights", category: "preference", confidence: 0.9, replaces: [] },
+    ]);
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: `<think>\nAnalyzing...\n</think>\n\`\`\`json\n${json}\n\`\`\``,
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("I like warm white", "Got it!", []);
+
+    expect(result).toEqual([
+      { content: "User prefers warm white lights", category: "preference", confidence: 0.9, replaces: [] },
+    ]);
+  });
+
+  it("handles <think> tags with empty JSON array response", async () => {
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: "<think>\nThis is just a command, no facts to extract.\n</think>\n[]",
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("turn on the light", "Done!", []);
+
+    expect(result).toEqual([]);
+  });
+
+  it("handles multiple <think> blocks in response", async () => {
+    const json = JSON.stringify([
+      { content: "User's daughter is named Alice", category: "identity", confidence: 0.95, replaces: [] },
+    ]);
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: `<think>First thought</think>\n<think>Second thought</think>\n${json}`,
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("msg", "resp", []);
+
+    expect(result).toEqual([
+      { content: "User's daughter is named Alice", category: "identity", confidence: 0.95, replaces: [] },
+    ]);
+  });
+
   it("passes baseUrl to OpenAI constructor", () => {
     // Just verifying construction doesn't throw
     const ext = new OpenAIFactExtractor(

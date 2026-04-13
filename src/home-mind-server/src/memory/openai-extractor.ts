@@ -53,8 +53,13 @@ ${JSON.stringify(factsJson, null, 2)}`;
 
       const text = response.choices[0]?.message?.content ?? "";
 
+      // Strip <think>...</think> blocks from thinking models (e.g. Qwen3, DeepSeek-R1)
+      // before any other processing — the thinking section can contain brackets/braces
+      // that confuse JSON extraction
+      const withoutThinking = text.replace(/<think>[\s\S]*?<\/think>\s*/gi, "");
+
       // Strip markdown code fences if present (LLMs sometimes wrap JSON in ```json ... ```)
-      const cleaned = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      const cleaned = withoutThinking.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
       // Handle empty responses (common with Ollama models)
       if (!cleaned) {
