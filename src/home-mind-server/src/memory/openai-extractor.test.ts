@@ -347,7 +347,7 @@ describe("OpenAIFactExtractor", () => {
       ],
     });
 
-    const result = await extractor.extract("msg", "resp", []);
+    const result = await extractor.extract("My daughter Alice just started school", "That's exciting!", []);
 
     expect(result).toEqual([
       { content: "User's daughter is named Alice", category: "identity", confidence: 0.95, replaces: [] },
