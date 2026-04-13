@@ -228,6 +228,53 @@ describe("OpenAIFactExtractor", () => {
     expect(result).toEqual([]);
   });
 
+  it("returns empty array when content is empty string", async () => {
+    mockCreate.mockResolvedValue({
+      choices: [{ message: { content: "" } }],
+    });
+
+    const result = await extractor.extract("msg", "resp", []);
+
+    expect(result).toEqual([]);
+  });
+
+  it("extracts JSON array from response with surrounding text", async () => {
+    const json = JSON.stringify([
+      { content: "User's name is Bob", category: "identity", replaces: [] },
+    ]);
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: `Here are the facts I extracted:\n${json}\nThat's all.`,
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("msg", "resp", []);
+
+    expect(result).toEqual([
+      { content: "User's name is Bob", category: "identity", replaces: [] },
+    ]);
+  });
+
+  it("returns empty array when response has no JSON array anywhere", async () => {
+    mockCreate.mockResolvedValue({
+      choices: [
+        {
+          message: {
+            content: "I could not extract any facts from this conversation.",
+          },
+        },
+      ],
+    });
+
+    const result = await extractor.extract("msg", "resp", []);
+
+    expect(result).toEqual([]);
+  });
+
   it("passes baseUrl to OpenAI constructor", () => {
     // Just verifying construction doesn't throw
     const ext = new OpenAIFactExtractor(
