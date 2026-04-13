@@ -86,7 +86,7 @@ See [docs/MEMORY_EXAMPLES.md](docs/MEMORY_EXAMPLES.md) for more examples.
 ### 1. Clone and Configure
 
 ```bash
-git clone https://github.com/hoornet/home-mind.git
+git clone https://github.com/rgnyldz/home-mind.git
 cd home-mind
 cp .env.example .env
 ```
@@ -117,7 +117,7 @@ cd ../..
 ### 3. Install HA Custom Component
 
 **HACS (Recommended):**
-1. Add `https://github.com/hoornet/home-mind-hacs` as custom repository in HACS (select **Integration** as the type)
+1. Add `https://github.com/rgnyldz/home-mind-hacs` as custom repository in HACS (select **Integration** as the type)
 2. Install "Home Mind"
 3. Restart Home Assistant
 
@@ -221,7 +221,7 @@ Only specify what needs changing — unspecified fields use auto-detected values
 
 ## Easy Install: HomeMind PRO Add-on
 
-If you're running Home Assistant and want a **one-click setup**, check out the **[HomeMind PRO add-on](https://github.com/hoornet/homemind-pro-addon)**.
+If you're running Home Assistant and want a **one-click setup**, check out the **[HomeMind PRO add-on](https://github.com/rgnyldz/homemind-pro-addon)**.
 
 It bundles everything (server + Shodh Memory) into a single HA add-on — no Docker, no manual config, no terminal. Add the repository in HA Supervisor, install, and you're done. Supports both cloud mode (managed API key) and BYOK (bring your own key).
 
@@ -253,7 +253,7 @@ The self-hosted Docker Compose setup below is for advanced users who want full c
 
 ## Documentation
 
-- [Wiki](https://github.com/hoornet/home-mind/wiki) - Full documentation
+- [Wiki](https://github.com/rgnyldz/home-mind/wiki) - Full documentation
 - [CHANGELOG.md](CHANGELOG.md) - Version history
 - [CLAUDE.md](CLAUDE.md) - Development guide
 - [docs/MEMORY_EXAMPLES.md](docs/MEMORY_EXAMPLES.md) - Memory system examples
@@ -329,9 +329,8 @@ If Home Mind is useful to you, consider supporting its development:
 
 ## Contact
 
-- **Issues & Feature Requests**: [GitHub Issues](https://github.com/hoornet/home-mind/issues)
-- **Author**: Jure Sršen ([@hoornet](https://github.com/jure))
-- **Email**: 44338+hoornet@users.noreply.github.com
+- **Issues & Feature Requests**: [GitHub Issues](https://github.com/rgnyldz/home-mind/issues)
+- **Author**: rgnyldz ([@rgnyldz](https://github.com/rgnyldz))
 
 ## License
 
