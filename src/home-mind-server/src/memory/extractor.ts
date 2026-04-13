@@ -48,8 +48,11 @@ ${JSON.stringify(factsJson, null, 2)}`;
       const text =
         response.content[0].type === "text" ? response.content[0].text : "";
 
+      // Strip <think>...</think> blocks from thinking models before any other processing
+      const withoutThinking = text.replace(/<think>[\s\S]*?<\/think>\s*/gi, "");
+
       // Strip markdown code fences if present (LLMs sometimes wrap JSON in ```json ... ```)
-      const cleaned = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
+      const cleaned = withoutThinking.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
       // Handle empty responses
       if (!cleaned) {

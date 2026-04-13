@@ -134,6 +134,13 @@ export async function extractAndStoreFacts(
   // Filter out garbage
   const { kept, skipped } = filterExtractedFacts(extractedFacts);
 
+  // Log extraction results at info level so operators can diagnose issues
+  if (extractedFacts.length === 0) {
+    console.log(`[extract] No facts extracted for ${userId}`);
+  } else {
+    console.log(`[extract] ${extractedFacts.length} extracted, ${kept.length} kept, ${skipped.length} filtered for ${userId}`);
+  }
+
   for (const { fact, reason } of skipped) {
     console.debug(`[filter] Skipped fact for ${userId}: "${fact.content}" — ${reason}`);
   }
