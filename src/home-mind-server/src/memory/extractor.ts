@@ -51,8 +51,24 @@ ${JSON.stringify(factsJson, null, 2)}`;
       // Strip markdown code fences if present (LLMs sometimes wrap JSON in ```json ... ```)
       const cleaned = text.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "").trim();
 
-      // Parse JSON response
-      const facts = JSON.parse(cleaned);
+      // Handle empty responses
+      if (!cleaned) {
+        return [];
+      }
+
+      // Try direct parse first, then try extracting a JSON array from the response
+      // (some models add explanation text before/after the JSON)
+      let facts: unknown;
+      try {
+        facts = JSON.parse(cleaned);
+      } catch {
+        const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+        if (arrayMatch) {
+          facts = JSON.parse(arrayMatch[0]);
+        } else {
+          return [];
+        }
+      }
 
       if (!Array.isArray(facts)) {
         return [];

@@ -110,7 +110,7 @@ cd docker/shodh
 curl -sL https://github.com/varun29ankuS/shodh-memory/releases/latest/download/shodh-memory-linux-x64.tar.gz | tar -xz
 cd ../..
 
-# Deploy
+# Deploy (the PWA frontend is optional — deploy.sh works without home-mind-app)
 ./scripts/deploy.sh
 ```
 

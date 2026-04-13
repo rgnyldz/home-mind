@@ -49,26 +49,33 @@ if [ ! -f "$SHODH_BINARY" ]; then
     fi
 fi
 
-# Ensure HomeMind App source is present (sibling directory)
+# Ensure HomeMind App source is present (sibling directory) — optional
 APP_DIR="$(dirname "$PROJECT_DIR")/home-mind-app"
+COMPOSE_PROFILES=""
 if [ -d "$APP_DIR/.git" ]; then
     echo "Updating home-mind-app..."
     git -C "$APP_DIR" pull
+    COMPOSE_PROFILES="app"
 elif [ -d "$APP_DIR" ]; then
     echo "Using existing home-mind-app directory"
+    COMPOSE_PROFILES="app"
 else
-    echo "ERROR: home-mind-app not found at $APP_DIR"
-    echo "Sync it from your dev machine first:"
-    echo "  rsync -a --exclude node_modules --exclude dist ~/projects/home-mind-app/ ubuntuserver:~/home-mind-app/"
-    exit 1
+    echo "NOTE: home-mind-app not found at $APP_DIR (skipping PWA frontend)"
+    echo "  The server and memory backend will work without it."
+    echo "  To include the frontend later, clone it as a sibling directory."
 fi
 
 echo "Building and starting containers..."
 cd "$PROJECT_DIR"
 
-# Build and start
-docker compose build
-docker compose up -d
+# Build and start (include app profile only if home-mind-app is available)
+if [ -n "$COMPOSE_PROFILES" ]; then
+    COMPOSE_PROFILES="$COMPOSE_PROFILES" docker compose build
+    COMPOSE_PROFILES="$COMPOSE_PROFILES" docker compose up -d
+else
+    docker compose build
+    docker compose up -d
+fi
 
 echo ""
 echo "Waiting for services to be healthy..."
