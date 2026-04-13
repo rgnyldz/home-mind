@@ -27,7 +27,7 @@ Run these commands on your Linux server.
 ### Step 1: Clone the repository
 
 ```bash
-git clone https://github.com/hoornet/home-mind.git
+git clone https://github.com/rgnyldz/home-mind.git
 cd home-mind
 ```
 
@@ -107,7 +107,7 @@ Should return: `{"status":"ok",...}`
 2. Go to HACS → Integrations
 3. Click the three dots (⋮) in the top right
 4. Select "Custom repositories"
-5. Enter: `https://github.com/hoornet/home-mind-hacs`
+5. Enter: `https://github.com/rgnyldz/home-mind-hacs`
 6. Category: Integration
 7. Click "Add"
 
