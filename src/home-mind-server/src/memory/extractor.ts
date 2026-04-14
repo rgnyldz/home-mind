@@ -56,6 +56,7 @@ ${JSON.stringify(factsJson, null, 2)}`;
 
       // Handle empty responses
       if (!cleaned) {
+        console.debug(`[extract] Raw LLM response was empty or only contained <think> block (${text.length} chars raw)`);
         return [];
       }
 
@@ -69,6 +70,7 @@ ${JSON.stringify(factsJson, null, 2)}`;
         if (arrayMatch) {
           facts = JSON.parse(arrayMatch[0]);
         } else {
+          console.debug(`[extract] Could not parse extraction response as JSON: ${cleaned.slice(0, 200)}`);
           return [];
         }
       }

@@ -463,4 +463,78 @@ describe("OpenAIChatEngine", () => {
 
     expect(result.factsLearned).toBe(0);
   });
+
+  it("strips <think> tags from response text (thinking models like Qwen3)", async () => {
+    mockCreate.mockResolvedValue(
+      makeStream([
+        { choices: [{ delta: { content: "<think>\nLet me think about this.\n</think>\n" }, finish_reason: null }] },
+        { choices: [{ delta: { content: "Got it, I'll remember!" }, finish_reason: null }] },
+        { choices: [{ delta: {}, finish_reason: "stop" }] },
+      ])
+    );
+
+    const result = await engine.chat({ message: "Remember my name", userId: "user-1" });
+
+    expect(result.response).toBe("Got it, I'll remember!");
+  });
+
+  it("strips <think> tags before passing to extractAndStoreFacts", async () => {
+    mockCreate.mockResolvedValue(
+      makeStream([
+        { choices: [{ delta: { content: "<think>thinking</think>Clean response" }, finish_reason: null }] },
+        { choices: [{ delta: {}, finish_reason: "stop" }] },
+      ])
+    );
+
+    await engine.chat({ message: "Remember X", userId: "user-1" });
+
+    expect(extractAndStoreFacts).toHaveBeenCalledWith(
+      memory,
+      extractor,
+      "user-1",
+      "Remember X",
+      "Clean response"
+    );
+  });
+
+  it("strips <think> tags before storing in conversation history", async () => {
+    mockCreate.mockResolvedValue(
+      makeStream([
+        { choices: [{ delta: { content: "<think>inner</think>Visible" }, finish_reason: null }] },
+        { choices: [{ delta: {}, finish_reason: "stop" }] },
+      ])
+    );
+
+    await engine.chat({ message: "Hi", userId: "user-1", conversationId: "conv-1" });
+
+    expect(conversations.storeMessage).toHaveBeenCalledWith(
+      "conv-1",
+      "user-1",
+      "assistant",
+      "Visible"
+    );
+  });
+
+  it("filters <think> content from streamed chunks", async () => {
+    mockCreate.mockResolvedValue(
+      makeStream([
+        { choices: [{ delta: { content: "<think>" }, finish_reason: null }] },
+        { choices: [{ delta: { content: "thinking here" }, finish_reason: null }] },
+        { choices: [{ delta: { content: "</think>" }, finish_reason: null }] },
+        { choices: [{ delta: { content: "Visible" }, finish_reason: null }] },
+        { choices: [{ delta: {}, finish_reason: "stop" }] },
+      ])
+    );
+
+    const chunks: string[] = [];
+    await engine.chat({ message: "Hi", userId: "user-1" }, (chunk) =>
+      chunks.push(chunk)
+    );
+
+    // Only the visible content should be streamed
+    const streamed = chunks.join("");
+    expect(streamed).toBe("Visible");
+    expect(streamed).not.toContain("<think>");
+    expect(streamed).not.toContain("thinking here");
+  });
 });

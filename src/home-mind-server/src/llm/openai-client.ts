@@ -8,6 +8,7 @@ import { TopologyScanner } from "../ha/topology-scanner.js";
 import { buildSystemPromptText } from "./prompts.js";
 import { TOOL_DEFINITIONS, toOpenAITools } from "./tool-definitions.js";
 import { handleToolCall, extractAndStoreFacts } from "./tool-handler.js";
+import { stripThinkTags, ThinkTagFilter } from "./think-tag-filter.js";
 import type {
   ChatRequest,
   ChatResponse,
@@ -128,7 +129,9 @@ export class OpenAIChatEngine implements IChatEngine {
       result = await this.streamCompletion(messages, isVoice, onChunk);
     }
 
-    const responseText = result.text;
+    // Strip <think>...</think> blocks from thinking models (Qwen3, DeepSeek-R1 etc.)
+    // before storing, returning, or passing to the fact extractor
+    const responseText = stripThinkTags(result.text);
 
     // 6. Store assistant response
     if (conversationId && responseText) {
@@ -171,6 +174,9 @@ export class OpenAIChatEngine implements IChatEngine {
     let text = "";
     let finishReason: string | null = null;
 
+    // Filter <think> blocks from streamed content so users don't see thinking text
+    const thinkFilter = onChunk ? new ThinkTagFilter() : null;
+
     // Accumulate tool calls from streamed deltas, indexed by position
     const toolCallAccumulator = new Map<
       number,
@@ -184,8 +190,11 @@ export class OpenAIChatEngine implements IChatEngine {
       // Accumulate text
       if (choice.delta?.content) {
         text += choice.delta.content;
-        if (onChunk) {
-          onChunk(choice.delta.content);
+        if (onChunk && thinkFilter) {
+          const filtered = thinkFilter.push(choice.delta.content);
+          if (filtered) {
+            onChunk(filtered);
+          }
         }
       }
 
@@ -211,6 +220,14 @@ export class OpenAIChatEngine implements IChatEngine {
 
       if (choice.finish_reason) {
         finishReason = choice.finish_reason;
+      }
+    }
+
+    // Flush any remaining buffered content from the think-tag filter
+    if (onChunk && thinkFilter) {
+      const remaining = thinkFilter.flush();
+      if (remaining) {
+        onChunk(remaining);
       }
     }
 
